@@ -25,7 +25,8 @@
 <div class="player-card">
     <h2>Плеер Книг (Фоновый режим)</h2>
 
-    <input type="file" id="pdfFile" accept=".pdf" onchange="loadPdf()" class="file-input-field">
+    <!-- Кнопка выбора файла принимает текстовый файл -->
+    <input type="file" id="txtFile" accept=".txt" onchange="loadTxtFile()" class="file-input-field">
 
     <div id="progress-container" class="progress-container">
         <div id="progress-bar" class="progress-bar">0%</div>
@@ -41,8 +42,6 @@
     <div id="text-preview">Здесь появится очищенный текст текущего предложения...</div>
 </div>
 
-<!-- ТЕХНИЧЕСКОЕ ПОДКЛЮЧЕНИЕ БИБЛИОТЕК И СКРИПТОВ В ПРАВИЛЬНОМ ПОРЯДКЕ -->
-<script src="https://cloudflare.com"></script>
 <script src="app.js"></script>
 </body>
 </html>

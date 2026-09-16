@@ -1,70 +1,57 @@
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cloudflare.com';
-
 let sentences = [];
 let currentIndex = 0;
 let audioPlayer = new Audio();
 let isPlaying = false;
 
-// Постраничное извлечение текста и управление индикатором выполнения
-async function loadPdf() {
-    const fileInput = document.getElementById('pdfFile');
+// Чтение текстового файла встроенными силами телефона (без внешних библиотек)
+function loadTxtFile() {
+    const fileInput = document.getElementById('txtFile');
     const status = document.getElementById('status');
     const progressContainer = document.getElementById('progress-container');
     const progressBar = document.getElementById('progress-bar');
 
     if (fileInput.files.length === 0) return;
 
-    // Включаем отображение индикатора перед началом вычислений
     progressContainer.style.display = "block";
-    progressBar.style.width = "0%";
-    progressBar.innerText = "0%";
-    status.innerText = "Подготовка файла книги...";
+    progressBar.style.width = "50%";
+    progressBar.innerText = "50%";
+    status.innerText = "Чтение файла...";
     document.getElementById('playBtn').disabled = true;
 
     const file = fileInput.files[0];
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const reader = new FileReader();
 
-    let rawText = "";
-    const totalPages = pdf.numPages; // Общее количество страниц в файле
+    // Этот код сработает внутри процессора телефона мгновенно
+    reader.onload = function(e) {
+        let rawText = e.target.result;
 
-    // Проходим циклом по каждой странице книги
-    for (let i = 1; i <= totalPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items.map(item => item.str).join(' ');
-        rawText += pageText + " ";
+        progressBar.style.width = "90%";
+        progressBar.innerText = "90%";
+        status.innerText = "Очистка текста от мусора...";
 
-        // Вычисляем текущий технический процент выполнения
-        const percentage = Math.round((i / totalPages) * 100);
+        // Алгоритм очистки текста
+        let text = rawText;
+        text = text.replace(/-\s*\n/g, '');
+        text = text.replace(/Б\.\s*Н\.\s*Миронов|Российская империя|от традиции к модерну/gi, '');
+        text = text.replace(/\s+/g, ' ');
 
-        // Двигаем зелёную полосу и обновляем текст с цифрой внутри неё
-        progressBar.style.width = percentage + "%";
-        progressBar.innerText = percentage + "%";
-        status.innerText = `Обработка страницы ${i} из ${totalPages}`;
-    }
+        // Нарезка на предложения
+        sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+        sentences = sentences.map(s => s.trim()).filter(s => s.length > 5);
 
-    status.innerText = "Очистка полученного текста от мусора...";
+        progressBar.style.width = "100%";
+        progressBar.innerText = "100%";
+        currentIndex = 0;
 
-    // Наш алгоритм очистки текста книги от дефисов и колонтитулов
-    let text = rawText;
-    text = text.replace(/-\s*\n/g, ''); // Соединяем разорванные переносами слова
-    text = text.replace(/Б\.\s*Н\.\s*Миронов|Российская империя|от традиции к модерну/gi, ''); // Стираем колонтитулы
-    text = text.replace(/\s+/g, ' '); // Удаляем лишние пробелы
+        status.innerText = `Успешно загружено предложений: ${sentences.length}`;
+        document.getElementById('playBtn').disabled = false;
 
-    // Нарезаем чистый текст на массив отдельных предложений
-    sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-    sentences = sentences.map(s => s.trim()).filter(s => s.length > 5);
+        setTimeout(() => { progressContainer.style.display = "none"; }, 1500);
+    };
 
-    currentIndex = 0;
-    status.innerText = `Успешно загружено предложений: ${sentences.length}`;
-    document.getElementById('playBtn').disabled = false;
-
-    // Плавное скрытие индикатора загрузки через 2 секунды после успеха
-    setTimeout(() => { progressContainer.style.display = "none"; }, 2000);
+    reader.readAsText(file, "UTF-8");
 }
 
-// Воспроизведение звука по принципу музыкального трека
 function playAudio() {
     if (sentences.length === 0) return;
     isPlaying = true;
@@ -77,14 +64,12 @@ function speakCurrentSentence() {
     const currentText = sentences[currentIndex];
     document.getElementById('text-preview').innerText = currentText;
 
-    // Передаем строку текста на стабильный речевой сервер
     const encodedText = encodeURIComponent(currentText);
     const audioUrl = `https://google.com{encodedText}`;
 
     audioPlayer.src = audioUrl;
     audioPlayer.play().catch(err => console.log("Техническая заминка звука:", err));
 
-    // Автопереход к следующей строчке, когда текущая доиграла до конца
     audioPlayer.onended = () => {
         currentIndex++;
         speakCurrentSentence();
