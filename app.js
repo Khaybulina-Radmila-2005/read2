@@ -5,14 +5,20 @@ let currentIndex = 0;
 let audioPlayer = new Audio();
 let isPlaying = false;
 
-// Извлечение и автоматическая очистка текста из PDF
+// Постраничное извлечение текста и управление индикатором выполнения
 async function loadPdf() {
     const fileInput = document.getElementById('pdfFile');
     const status = document.getElementById('status');
+    const progressContainer = document.getElementById('progress-container');
+    const progressBar = document.getElementById('progress-bar');
 
     if (fileInput.files.length === 0) return;
 
-    status.innerText = "Чтение книги и очистка от мусора... Подождите.";
+    // Включаем отображение индикатора перед началом вычислений
+    progressContainer.style.display = "block";
+    progressBar.style.width = "0%";
+    progressBar.innerText = "0%";
+    status.innerText = "Подготовка файла книги...";
     document.getElementById('playBtn').disabled = true;
 
     const file = fileInput.files[0];
@@ -20,31 +26,45 @@ async function loadPdf() {
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
     let rawText = "";
+    const totalPages = pdf.numPages; // Общее количество страниц в файле
 
-    // Постранично вытягиваем текст
-    for (let i = 1; i <= pdf.numPages; i++) {
+    // Проходим циклом по каждой странице книги
+    for (let i = 1; i <= totalPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
         const pageText = textContent.items.map(item => item.str).join(' ');
         rawText += pageText + " ";
+
+        // Вычисляем текущий технический процент выполнения
+        const percentage = Math.round((i / totalPages) * 100);
+
+        // Двигаем зелёную полосу и обновляем текст с цифрой внутри неё
+        progressBar.style.width = percentage + "%";
+        progressBar.innerText = percentage + "%";
+        status.innerText = `Обработка страницы ${i} из ${totalPages}`;
     }
 
-    // Алгоритм очистки текста от мусора
-    let text = rawText;
-    text = text.replace(/-\s*\n/g, ''); // Соединяем слова, разорванные дефисами
-    text = text.replace(/Б\.\s*Н\.\s*Миронов|Российская империя|от традиции к модерну/gi, ''); // Стираем колонтитулы
-    text = text.replace(/\s+/g, ' '); // Убираем дубли пробелов
+    status.innerText = "Очистка полученного текста от мусора...";
 
-    // Разделяем очищенный текст на предложения по точкам и знакам
+    // Наш алгоритм очистки текста книги от дефисов и колонтитулов
+    let text = rawText;
+    text = text.replace(/-\s*\n/g, ''); // Соединяем разорванные переносами слова
+    text = text.replace(/Б\.\s*Н\.\s*Миронов|Российская империя|от традиции к модерну/gi, ''); // Стираем колонтитулы
+    text = text.replace(/\s+/g, ' '); // Удаляем лишние пробелы
+
+    // Нарезаем чистый текст на массив отдельных предложений
     sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
     sentences = sentences.map(s => s.trim()).filter(s => s.length > 5);
 
     currentIndex = 0;
     status.innerText = `Успешно загружено предложений: ${sentences.length}`;
     document.getElementById('playBtn').disabled = false;
+
+    // Плавное скрытие индикатора загрузки через 2 секунды после успеха
+    setTimeout(() => { progressContainer.style.display = "none"; }, 2000);
 }
 
-// Воспроизведение звука по технологии музыкального трека
+// Воспроизведение звука по принципу музыкального трека
 function playAudio() {
     if (sentences.length === 0) return;
     isPlaying = true;
@@ -57,14 +77,14 @@ function speakCurrentSentence() {
     const currentText = sentences[currentIndex];
     document.getElementById('text-preview').innerText = currentText;
 
-    // Передаем строку на стабильный TTS-сервер. Смартфон считает это музыкой и не выключает звук в фоне!
+    // Отправляем строку текста на речевой сервер Google
     const encodedText = encodeURIComponent(currentText);
     const audioUrl = `https://google.com{encodedText}`;
 
     audioPlayer.src = audioUrl;
-    audioPlayer.play().catch(err => console.log("Ошибка звука:", err));
+    audioPlayer.play().catch(err => console.log("Техническая заминка звука:", err));
 
-    // Переключение на следующее предложение по завершении текущего
+    // Автопереход к следующей строчке, когда текущая доиграла до конца
     audioPlayer.onended = () => {
         currentIndex++;
         speakCurrentSentence();
