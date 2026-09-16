@@ -5,7 +5,7 @@ let currentIndex = 0;
 let audioPlayer = new Audio();
 let isPlaying = false;
 
-// 1. Извлечение и полная очистка текста из PDF
+// Извлечение и автоматическая очистка текста из PDF
 async function loadPdf() {
     const fileInput = document.getElementById('pdfFile');
     const status = document.getElementById('status');
@@ -21,6 +21,7 @@ async function loadPdf() {
 
     let rawText = "";
 
+    // Постранично вытягиваем текст
     for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
@@ -28,13 +29,13 @@ async function loadPdf() {
         rawText += pageText + " ";
     }
 
-    // Применяем ваши правила очистки текста
+    // Алгоритм очистки текста от мусора
     let text = rawText;
-    text = text.replace(/-\s*\n/g, ''); // Склеиваем слова с переносами
-    text = text.replace(/Б\.\s*Н\.\s*Миронов|Российская империя|от традиции к модерну/gi, ''); // Удаляем колонтитулы книги
-    text = text.replace(/\s+/g, ' '); // Убираем лишние пробелы
+    text = text.replace(/-\s*\n/g, ''); // Соединяем слова, разорванные дефисами
+    text = text.replace(/Б\.\s*Н\.\s*Миронов|Российская империя|от традиции к модерну/gi, ''); // Стираем колонтитулы
+    text = text.replace(/\s+/g, ' '); // Убираем дубли пробелов
 
-    // Разбираем очищенный текст на отдельные предложения
+    // Разделяем очищенный текст на предложения по точкам и знакам
     sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
     sentences = sentences.map(s => s.trim()).filter(s => s.length > 5);
 
@@ -43,7 +44,7 @@ async function loadPdf() {
     document.getElementById('playBtn').disabled = false;
 }
 
-// 2. Фоновое воспроизведение через тег Audio
+// Воспроизведение звука по технологии музыкального трека
 function playAudio() {
     if (sentences.length === 0) return;
     isPlaying = true;
@@ -56,15 +57,14 @@ function speakCurrentSentence() {
     const currentText = sentences[currentIndex];
     document.getElementById('text-preview').innerText = currentText;
 
-    // Используем бесплатный TTS-сервер Google Translate API
-    // Этот аудиопоток телефон воспринимает как музыку и не глушит в фоне!
+    // Передаем строку на стабильный TTS-сервер. Смартфон считает это музыкой и не выключает звук в фоне!
     const encodedText = encodeURIComponent(currentText);
     const audioUrl = `https://google.com{encodedText}`;
 
     audioPlayer.src = audioUrl;
-    audioPlayer.play().catch(err => console.log("Ошибка воспроизведения:", err));
+    audioPlayer.play().catch(err => console.log("Ошибка звука:", err));
 
-    // Автоматический переход к следующему предложению, когда текущее дочитано
+    // Переключение на следующее предложение по завершении текущего
     audioPlayer.onended = () => {
         currentIndex++;
         speakCurrentSentence();

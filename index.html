@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Фоновый Аудио Плеер</title>
     <link rel="manifest" href="manifest.json">
-    <!-- Подключаем библиотеку PDF.js для чтения файлов прямо на телефоне -->
+    <!-- Подключаем библиотеку Mozilla PDF.js для извлечения текста на телефоне -->
     <script src="https://cloudflare.com"></script>
     <style>
         body { font-family: -apple-system, sans-serif; padding: 20px; background: #121212; color: #e0e0e0; text-align: center; }
         .player-card { background: #1e1e1e; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); max-width: 400px; margin: 40px auto; }
         h2 { margin-top: 0; color: #fff; font-size: 22px; }
-        input[type="file"] { display: none; }
-        .file-label { display: block; background: #2196F3; color: white; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 20px; }
+        /* Прямой и надежный стиль для кнопки выбора файлов в Samsung Internet */
+        .file-input-field { width: 100%; padding: 12px; font-size: 16px; background: #2196F3; color: white; border-radius: 8px; border: none; font-weight: bold; margin-bottom: 20px; cursor: pointer; box-sizing: border-box; }
         .controls { display: flex; justify-content: center; gap: 15px; margin: 20px 0; }
         button { flex: 1; padding: 15px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; color: white; transition: 0.2s; }
         .btn-play { background: #4CAF50; }
@@ -26,13 +26,13 @@
 <div class="player-card">
     <h2>Плеер Книг (Фоновый режим)</h2>
 
-    <label for="pdfFile" class="file-label">Выбрать PDF-книгу Миронова</label>
-    <input type="file" id="pdfFile" accept=".pdf" onchange="loadPdf()">
+    <!-- Открытая системная кнопка, по которой браузер телефона точно сможет кликнуть -->
+    <input type="file" id="pdfFile" accept=".pdf" onchange="loadPdf()" class="file-input-field">
 
     <div id="status">Файл не выбран</div>
 
     <div class="controls">
-        <button id="playBtn" class="btn-play" onclick="playAudio()" disabled>Слушать фoном</button>
+        <button id="playBtn" class="btn-play" onclick="playAudio()" disabled>Слушать фоном</button>
         <button class="btn-stop" onclick="stopAudio()">Стоп</button>
     </div>
 
