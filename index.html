@@ -3,32 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Умная Читалка</title>
+    <title>Фоновый Аудио Плеер</title>
     <link rel="manifest" href="manifest.json">
+    <!-- Подключаем библиотеку PDF.js для чтения файлов прямо на телефоне -->
+    <script src="https://cloudflare.com"></script>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f5f5f5; color: #333; }
-        textarea { width: 100%; height: 200px; margin-bottom: 15px; border-radius: 8px; padding: 10px; border: 1px solid #ccc; font-size: 16px; }
-        .controls { display: flex; gap: 10px; margin-bottom: 15px; }
-        button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; color: white; font-weight: bold; }
-        .btn-clean { background: #2196F3; }
+        body { font-family: -apple-system, sans-serif; padding: 20px; background: #121212; color: #e0e0e0; text-align: center; }
+        .player-card { background: #1e1e1e; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); max-width: 400px; margin: 40px auto; }
+        h2 { margin-top: 0; color: #fff; font-size: 22px; }
+        input[type="file"] { display: none; }
+        .file-label { display: block; background: #2196F3; color: white; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 20px; }
+        .controls { display: flex; justify-content: center; gap: 15px; margin: 20px 0; }
+        button { flex: 1; padding: 15px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; color: white; transition: 0.2s; }
         .btn-play { background: #4CAF50; }
+        .btn-play:disabled { background: #555; color: #aaa; cursor: not-allowed; }
         .btn-stop { background: #F44336; }
-        #output { background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; min-height: 100px; white-space: pre-wrap; font-size: 18px; line-height: 1.5; }
+        #status { font-size: 14px; color: #aaa; margin-bottom: 15px; min-height: 20px; }
+        #text-preview { background: #2a2a2a; padding: 15px; border-radius: 8px; text-align: left; max-height: 150px; overflow-y: auto; font-size: 16px; line-height: 1.5; color: #ccc; }
     </style>
 </head>
 <body>
-<h2>Умная Читалка (Очистка + TTS)</h2>
-<textarea id="rawInput" placeholder="Вставьте сюда скопированный из PDF текст с тире и колонтитулами..."></textarea>
+<div class="player-card">
+    <h2>Плеер Книг (Фоновый режим)</h2>
 
-<div class="controls">
-    <button class="btn-clean" onclick="handleClean()">Очистить текст</button>
-    <button class="btn-play" onclick="handlePlay()">Слушать</button>
-    <button class="btn-stop" onclick="handleStop()">Стоп</button>
+    <label for="pdfFile" class="file-label">Выбрать PDF-книгу Миронова</label>
+    <input type="file" id="pdfFile" accept=".pdf" onchange="loadPdf()">
+
+    <div id="status">Файл не выбран</div>
+
+    <div class="controls">
+        <button id="playBtn" class="btn-play" onclick="playAudio()" disabled>Слушать фoном</button>
+        <button class="btn-stop" onclick="stopAudio()">Стоп</button>
+    </div>
+
+    <div id="text-preview">Здесь появится очищенный текст текущего предложения...</div>
 </div>
-
-<h3>Очищенный текст для чтения:</h3>
-<div id="output"></div>
-
-<script src="app.js"></script>
 </body>
 </html>
