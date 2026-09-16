@@ -1,0 +1,16 @@
+{
+  "short_name": "Читалка",
+  "name": "Умная Офлайн Читалка",
+  "icons": [
+    {
+      "src": "https://flaticon.com",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#f5f5f5",
+  "theme_color": "#2196F3",
+  "display": "standalone",
+  "orientation": "portrait"
+}
