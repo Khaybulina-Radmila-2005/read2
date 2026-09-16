@@ -12,6 +12,7 @@ function loadTxtFile() {
 
     if (fileInput.files.length === 0) return;
 
+    // Включаем индикатор
     progressContainer.style.display = "block";
     progressBar.style.width = "50%";
     progressBar.innerText = "50%";
@@ -31,11 +32,11 @@ function loadTxtFile() {
 
         // Алгоритм очистки текста
         let text = rawText;
-        text = text.replace(/-\s*\n/g, '');
-        text = text.replace(/Б\.\s*Н\.\s*Миронов|Российская империя|от традиции к модерну/gi, '');
-        text = text.replace(/\s+/g, ' ');
+        text = text.replace(/-\s*\n/g, ''); // Склеиваем слова с переносами
+        text = text.replace(/Б\.\s*Н\.\s*Миронов|Российская империя|от традиции к модерну/gi, ''); // Стираем колонтитулы
+        text = text.replace(/\s+/g, ' '); // Удаляем лишние пробелы
 
-        // Нарезка на предложения
+        // Нарезка очищенного текста на предложения
         sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
         sentences = sentences.map(s => s.trim()).filter(s => s.length > 5);
 
@@ -46,12 +47,14 @@ function loadTxtFile() {
         status.innerText = `Успешно загружено предложений: ${sentences.length}`;
         document.getElementById('playBtn').disabled = false;
 
+        // Скрываем индикатор выполнения через 1.5 секунды
         setTimeout(() => { progressContainer.style.display = "none"; }, 1500);
     };
 
     reader.readAsText(file, "UTF-8");
 }
 
+// Воспроизведение звука по технологии музыкального трека
 function playAudio() {
     if (sentences.length === 0) return;
     isPlaying = true;
@@ -64,12 +67,16 @@ function speakCurrentSentence() {
     const currentText = sentences[currentIndex];
     document.getElementById('text-preview').innerText = currentText;
 
+    // Переводим текст в безопасную ссылку
     const encodedText = encodeURIComponent(currentText);
+
+    // ИСПРАВЛЕНИЕ: Переписано строго на защищенный протокол HTTPS
     const audioUrl = `https://google.com{encodedText}`;
 
     audioPlayer.src = audioUrl;
     audioPlayer.play().catch(err => console.log("Техническая заминка звука:", err));
 
+    // Автоматический переход к следующей строчке, когда текущая доиграла до конца
     audioPlayer.onended = () => {
         currentIndex++;
         speakCurrentSentence();
