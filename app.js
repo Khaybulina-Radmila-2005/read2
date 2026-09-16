@@ -77,7 +77,7 @@ function speakCurrentSentence() {
     const currentText = sentences[currentIndex];
     document.getElementById('text-preview').innerText = currentText;
 
-    // Отправляем строку текста на речевой сервер Google
+    // Передаем строку текста на стабильный речевой сервер
     const encodedText = encodeURIComponent(currentText);
     const audioUrl = `https://google.com{encodedText}`;
 
